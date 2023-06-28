@@ -88,6 +88,12 @@
            <%  HRDepartment hr = (HRDepartment) request.getAttribute("hr"); %> 
            <%  List <String> listOfDocuments =(List<String>) request.getAttribute("listOfDocuments"); %> 
 
+
+ <div class="form-group">
+    <label for="candidate-name"></label>
+<input type="hidden" id="candidateId" name="candidateId" value="<%= candidate.getCandId() %>" readonly>
+  </div>
+
    <div class="form-group">
     <label for="candidate-name">Candidate Name:</label>
 <input type="text" id="candidateName" name="candidateName" value="<%= candidate.getCandFirstName() + candidate.getCandLastName() %>" readonly>

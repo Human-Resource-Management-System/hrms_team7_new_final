@@ -12,20 +12,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import DAO_Interfaces.CandidateDAO;
 import models.Candidate;
-import models.Eofr;
+import models.EmploymentOfferDocument;
+import models.EmploymentOfferdocComposite;
 import models.HRDepartment;
-import models.Inductiondocuments;
+import models.HrmsEmploymentOffer;
+import models.InductionDocumentTypes;
 import models.OfferModel;
-import models.empoffdocscomposite;
-import models.empoffdocuments;
 
 @Repository
 public class CandidateDAOImpl implements CandidateDAO {
 
 	@PersistenceContext
 	private EntityManager entityManager;
-	int eofrId;
-	Candidate cann;
+	int eofrI;
 
 	@Override
 	@Transactional
@@ -33,10 +32,11 @@ public class CandidateDAOImpl implements CandidateDAO {
 		entityManager.persist(candidate);
 	}
 
+	// get candidate details by ID
 	@Override
-	@Transactional
 	public Candidate getCandidateById(int candidateId) {
 		return entityManager.find(Candidate.class, candidateId);
+
 	}
 
 	@Override
@@ -46,6 +46,7 @@ public class CandidateDAOImpl implements CandidateDAO {
 		return entityManager.createQuery(query, Candidate.class).getResultList();
 	}
 
+	// get all the candidates list for whom the offer letter have to be send
 	@Override
 	public List<Candidate> findAllIssuedCandidates() {
 		TypedQuery<Candidate> query = entityManager
@@ -54,77 +55,93 @@ public class CandidateDAOImpl implements CandidateDAO {
 		return query.getResultList();
 	}
 
+	// update the candidate status from NA to AC after issuing offer letters.
 	@Override
 	@Transactional
-	public void updateCandidateStatus(String cand_status, String newValue) {
+	public void updateCandidateStatus(Candidate cann, String cand_status, String newValue) {
 		cann.setCandStatus(newValue); // Modify the desired column value
 		entityManager.merge(cann); // Save the changes to the database
 	}
 
+	// insert the new candidate information in employment offers table
 	@Override
 	@Transactional
-	public void insertEofrInto(Eofr eofr) {
+	public void insertEofrInto(HrmsEmploymentOffer eofr) {
 		entityManager.persist(eofr);
 	}
 
+	// getting latest employment offerId for incrementing the eofrId for new row
 	@Override
-	public Long getLatestEofrIdFromDatabase() {
-		TypedQuery<Long> query = entityManager.createQuery("SELECT MAX(e.eofr_id) FROM Eofr e", Long.class);
+	public int getLatestEofrIdFromDatabase() {
+		TypedQuery<Integer> query = entityManager
+				.createQuery("SELECT CAST(MAX(e.offerId) AS int) FROM HrmsEmploymentOffer e", Integer.class);
 		return query.getSingleResult();
 	}
 
+	// get all the induction documents to select by HR , the documents should bring by candidate while coming to
+	// induction program
 	@Override
 	public List<String> getAllDocuments() {
-		TypedQuery<String> query = entityManager.createQuery("SELECT e.idty_title FROM Inductiondocuments e",
+		TypedQuery<String> query = entityManager.createQuery("SELECT e.idtyTitle FROM InductionDocumentTypes e",
 				String.class);
 		return query.getResultList();
 	}
 
+	// to insert offerId, docIndex,IdtyId of the particular candidate in employment offers documents
+
 	@Override
 	@Transactional
-	public void updateEmploymentOfferDocuments(Eofr employmentOfferModel, OfferModel of) {
+	public void updateEmploymentOfferDocuments(HrmsEmploymentOffer employmentOfferModel, OfferModel of,
+			EmploymentOfferdocComposite empoffdocComposite, EmploymentOfferDocument employmentofferdocument) {
 
 		System.out.println("in here");
-		eofrId = employmentOfferModel.getEofr_cand_id();
+		// getting eofrId
+		int eofrId = employmentOfferModel.getCandidateId();
+		// getting the list of documents should bring by candidate
 		List<String> documentsToBring = of.getDocuments();
-
 		System.out.println(documentsToBring);
-		List<Inductiondocuments> inductionDocuments = getInductionDocuments();
+		// setting inductionDocumentTypes model from inductionDocumentTypes table
+		List<InductionDocumentTypes> inductionDocuments = getInductionDocuments();
 
 		System.out.println(inductionDocuments);
-
+		int docIndex = 1;
 		for (String document : documentsToBring) {
-			int docIndex = getMaxDocIndexFromDatabase() + 1;
-
+			// getting IdtyId by the document name
 			int idtyId = findIdtyIdByTitle(inductionDocuments, document);
-			empoffdocscomposite comp = new empoffdocscomposite();
-			comp.setEofrId(eofrId);
-			comp.setEofdDocIndex(docIndex);
-			empoffdocuments documentModel = new empoffdocuments(comp, idtyId);
+			// these four steps is for assigning eofrId,docIndex,idtyId to the employmentofferdocuments entity model
+			empoffdocComposite.setOfferid(eofrId);
+			empoffdocComposite.setDocumentIndex(docIndex);
+			employmentofferdocument.setEmpoff(empoffdocComposite);
+			employmentofferdocument.setOfferidentity(idtyId);
+			// EmploymentOfferDocument documentModel = new EmploymentOfferDocument(empoffdocComposite, idtyId);
 
-			System.out.println(documentModel);
-			entityManager.persist(documentModel);
+			System.out.println(employmentofferdocument);
+			// update the data into data base which got from entity model of employmentofferdocuments
+			saveEmploymentOfferDocument(employmentofferdocument);
+			docIndex++;
 		}
 	}
 
-	private List<Inductiondocuments> getInductionDocuments() {
-		TypedQuery<Inductiondocuments> query = entityManager.createQuery("SELECT d FROM Inductiondocuments d",
-				Inductiondocuments.class);
+	private List<InductionDocumentTypes> getInductionDocuments() {
+		TypedQuery<InductionDocumentTypes> query = entityManager.createQuery("SELECT d FROM InductionDocumentTypes d",
+				InductionDocumentTypes.class);
 		return query.getResultList();
 	}
 
+	// persists into employmenofferdocuemnts table
 	@Transactional
-	private void saveEmploymentOfferDocument(empoffdocuments document) {
+	private void saveEmploymentOfferDocument(EmploymentOfferDocument document) {
 		entityManager.persist(document);
 	}
 
-	private int findIdtyIdByTitle(List<Inductiondocuments> inductionDocuments, String title) {
-		for (Inductiondocuments document : inductionDocuments) {
-			if (document.getIdtyTitle().equalsIgnoreCase(title)) {
-				return document.getIdtyId();
+	// getting IdtyId by the document name
+	private int findIdtyIdByTitle(List<InductionDocumentTypes> inductionDocuments, String title) {
+		for (InductionDocumentTypes document : inductionDocuments) {
+			if (document.getTitle().equalsIgnoreCase(title)) {
+				return document.getDocumentTypeId();
 			}
 		}
-		return 0;
+		return 0; // Return an appropriate default value if the document title is not found
 	}
 
 	@Override
@@ -145,20 +162,6 @@ public class CandidateDAOImpl implements CandidateDAO {
 				.createQuery("SELECT c FROM Candidate c WHERE c.candStatus = :status", Candidate.class);
 		query.setParameter("status", "AC");
 		return query.getResultList();
-	}
-
-	public Integer getMaxDocIndexFromDatabase() {
-		TypedQuery<Integer> query = entityManager.createQuery(
-				"SELECT MAX(e.empoff.eofdDocIndex) FROM empoffdocuments e WHERE e.empoff.eofrId = :eofdId",
-				Integer.class);
-		query.setParameter("eofdId", eofrId);
-		System.out.println(eofrId);
-		Integer flag = query.getSingleResult();
-		if (flag == null)
-			return 0;
-		else
-			return flag;
-
 	}
 
 }

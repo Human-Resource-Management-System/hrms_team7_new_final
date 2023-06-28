@@ -3,8 +3,10 @@ package DAO_Interfaces;
 import java.util.List;
 
 import models.Candidate;
-import models.Eofr;
+import models.EmploymentOfferDocument;
+import models.EmploymentOfferdocComposite;
 import models.HRDepartment;
+import models.HrmsEmploymentOffer;
 import models.OfferModel;
 
 public interface CandidateDAO {
@@ -39,18 +41,18 @@ public interface CandidateDAO {
 	List<Candidate> findAllIssuedCandidates();
 
 	/**
-	 * Retrieves the latest Eofr ID from the database.
+	 * Retrieves the latest HrmsEmploymentOffer ID from the database.
 	 *
-	 * @return The latest Eofr ID from the database.
+	 * @return The latest HrmsEmploymentOffer ID from the database.
 	 */
-	Long getLatestEofrIdFromDatabase();
+	int getLatestEofrIdFromDatabase();
 
 	/**
-	 * Inserts an Eofr (Employment Offer) into the database.
+	 * Inserts an HrmsEmploymentOffer (Employment Offer) into the database.
 	 *
-	 * @param eofr The Eofr to be inserted.
+	 * @param eofr The HrmsEmploymentOffer to be inserted.
 	 */
-	void insertEofrInto(Eofr eofr);
+	void insertEofrInto(HrmsEmploymentOffer eofr);
 
 	/**
 	 * Retrieves an HR Department by its ID.
@@ -68,22 +70,24 @@ public interface CandidateDAO {
 	List<String> getAllDocuments();
 
 	/**
-	 * Updates the employment offer documents for an Eofr (Employment Offer).
+	 * Updates the employment offer documents for an HrmsEmploymentOffer (Employment Offer).
 	 *
-	 * @param eofr       The Eofr to be updated.
+	 * @param eofr       The HrmsEmploymentOffer to be updated.
 	 * @param offerModel The OfferModel containing the updated employment offer documents.
 	 */
-
-	void updateEmploymentOfferDocuments(Eofr eofr, OfferModel offerModel);
+	void updateEmploymentOfferDocuments(HrmsEmploymentOffer employmentOfferModel, OfferModel of,
+			EmploymentOfferdocComposite empoffdocComposite, EmploymentOfferDocument employmentofferdocument);
 
 	/**
 	 * Updates the status of a candidate.
+	 * 
+	 * @param candidate
 	 *
 	 * @param cand_status The current status of the candidate.
 	 * @param newValue    The new status value to be set.
 	 */
 
-	void updateCandidateStatus(String cand_status, String newValue);
+	void updateCandidateStatus(Candidate candidate, String cand_status, String newValue);
 
 	/**
 	 * Retrieves a list of all candidates whose offer letter has been issued.
@@ -91,4 +95,5 @@ public interface CandidateDAO {
 	 * @return A list of candidates whose offer letter has been issued.
 	 */
 	public List<Candidate> findAllProvidedCandidates();
+
 }

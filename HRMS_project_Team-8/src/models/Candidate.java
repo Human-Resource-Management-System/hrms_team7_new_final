@@ -13,6 +13,14 @@ import javax.persistence.Table;
 @Table(name = "hrms_candidates")
 public class Candidate {
 
+	@Override
+	public String toString() {
+		return "Candidate [candId=" + candId + ", candFirstName=" + candFirstName + ", candMiddleName=" + candMiddleName
+				+ ", candLastName=" + candLastName + ", candRDate=" + candRDate + ", candGender=" + candGender
+				+ ", candDOB=" + candDOB + ", candEmail=" + candEmail + ", candMobile=" + candMobile + ", candAddress="
+				+ candAddress + ", candLUDate=" + candLUDate + ", candStatus=" + candStatus + "]";
+	}
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "cand_id")

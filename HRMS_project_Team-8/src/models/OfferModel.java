@@ -1,8 +1,9 @@
-package models;
+package com.nkxgen.spring.orm.model;
 
 import java.util.List;
 
 public class OfferModel {
+	private String candidateId;
 	private String candidateName;
 	private String adminMobile;
 	private String adminEmail;
@@ -15,7 +16,7 @@ public class OfferModel {
 	}
 
 	public OfferModel(String candidateName, String adminMobile, String adminEmail, String offerDate, String offeredJob,
-			String reportingDate, List<String> documents) {
+			String reportingDate, List<String> documents, String candid) {
 		this.candidateName = candidateName;
 		this.adminMobile = adminMobile;
 		this.adminEmail = adminEmail;
@@ -23,6 +24,8 @@ public class OfferModel {
 		this.offeredJob = offeredJob;
 		this.reportingDate = reportingDate;
 		this.documents = documents;
+		this.candidateId = candid;
+
 	}
 
 	public String getCandidateName() {
@@ -79,5 +82,13 @@ public class OfferModel {
 
 	public void setDocuments(List<String> documents) {
 		this.documents = documents;
+	}
+
+	public String getCandidateId() {
+		return candidateId;
+	}
+
+	public void setCandidateId(String candidateId) {
+		this.candidateId = candidateId;
 	}
 }
